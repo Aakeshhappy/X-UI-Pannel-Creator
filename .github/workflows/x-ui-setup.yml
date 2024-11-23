@@ -1,34 +1,44 @@
-name: X-UI Panel Setup
+name: Setup X-UI Panel
 
 on:
-  workflow_dispatch: # Allows manual triggering from GitHub UI
+  workflow_dispatch: # Allow manual triggering
 
 jobs:
-  setup-panel:
-    runs-on: ubuntu-latest # Use a Linux environment
-    
-    steps:
-      # Step 1: Check out the repository
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      
-      # Step 2: Install dependencies
-      - name: Install required dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y curl wget
+  setup-xui:
+    runs-on: ubuntu-latest
 
-      # Step 3: Install x-ui panel
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Install X-UI
       - name: Install X-UI Panel
         run: |
+          echo "Updating and installing dependencies..."
+          sudo apt-get update
+          sudo apt-get install -y curl wget
+          
+          echo "Installing X-UI..."
           bash <(curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh)
-      
-      # Step 4: Start the x-ui service
+          
+          echo "X-UI installation complete."
+
+      # Step 3: Configure Authentication (username & password)
+      - name: Configure Username and Password
+        run: |
+          echo "Configuring username and password..."
+          x-ui setuser "${{ secrets.XUI_USERNAME }}" "${{ secrets.XUI_PASSWORD }}"
+
+      # Step 4: Start the X-UI service
       - name: Start X-UI Service
         run: |
-          systemctl start x-ui
-          systemctl enable x-ui
-      
-      # Step 5: Show completion message
-      - name: Complete Setup
-        run: echo "X-UI Panel setup is complete!"
+          echo "Starting X-UI service..."
+          sudo systemctl start x-ui
+          sudo systemctl enable x-ui
+
+      # Step 5: Output Panel Access Information
+      - name: Output Panel URL
+        run: |
+          echo "X-UI Panel is successfully installed and running."
+          echo "Visit the panel at: http://<runner-public-IP>:54321"
