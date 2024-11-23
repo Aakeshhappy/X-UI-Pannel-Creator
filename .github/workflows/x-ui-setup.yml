@@ -34,26 +34,44 @@ jobs:
           sudo curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh | sudo bash
           echo "X-UI installation complete."
 
-      # Step 5: Configure X-UI with Username and Password
+      # Step 5: Verify X-UI Installation and Find Config File Location
+      - name: Verify X-UI Installation and Locate Config File
+        run: |
+          echo "Checking installation status and locating config file..."
+          sudo systemctl status x-ui
+          if [ -f /etc/x-ui/x-ui.conf ]; then
+            echo "Configuration file found at /etc/x-ui/x-ui.conf"
+          else
+            echo "X-UI configuration file not found at /etc/x-ui/x-ui.conf. Checking other locations..."
+            sudo find / -name "x-ui.conf"
+          fi
+
+      # Step 6: Configure X-UI with Username and Password
       - name: Configure X-UI with Username and Password
         run: |
           echo "Configuring X-UI Panel..."
           sudo x-ui setuser "${{ secrets.XUI_USERNAME }}" "${{ secrets.XUI_PASSWORD }}"
 
-      # Step 6: Configure X-UI to Bind to Public IP
+      # Step 7: Update X-UI Configuration with Public IP
       - name: Update X-UI Configuration
         run: |
-          echo "Configuring X-UI to bind to public IP..."
-          sudo sed -i "s/127.0.0.1/$PUBLIC_IP/" /etc/x-ui/x-ui.conf
+          CONFIG_FILE=$(sudo find / -name "x-ui.conf" | head -n 1)
+          if [ -z "$CONFIG_FILE" ]; then
+            echo "Configuration file not found. Please check the installation."
+            exit 1
+          fi
+          echo "Updating X-UI configuration to bind to public IP..."
+          sudo sed -i "s/127.0.0.1/$PUBLIC_IP/" "$CONFIG_FILE"
+          echo "X-UI configuration updated."
 
-      # Step 7: Start the X-UI Service
+      # Step 8: Start the X-UI Service
       - name: Start X-UI Service
         run: |
           echo "Starting X-UI service..."
           sudo systemctl start x-ui
           sudo systemctl enable x-ui
 
-      # Step 8: Output X-UI Panel Access URL
+      # Step 9: Output X-UI Panel Access URL
       - name: Output Panel Access Information
         run: |
           echo "X-UI Panel is successfully installed and running."
