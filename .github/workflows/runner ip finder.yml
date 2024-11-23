@@ -1,0 +1,50 @@
+name: Setup X-UI Panel
+
+on:
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  setup-xui:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Get Runner Public IP Address
+      - name: Get Public IP Address
+        run: |
+          echo "Getting runner's public IP address..."
+          curl http://checkip.amazonaws.com
+
+      # Step 3: Install X-UI
+      - name: Install X-UI Panel
+        run: |
+          echo "Updating and installing dependencies..."
+          sudo apt-get update
+          sudo apt-get install -y curl wget
+          
+          echo "Installing X-UI..."
+          curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh | sudo bash
+          
+          echo "X-UI installation complete."
+
+      # Step 4: Configure Username and Password
+      - name: Configure Username and Password
+        run: |
+          echo "Configuring username and password..."
+          sudo x-ui setuser "${{ secrets.XUI_USERNAME }}" "${{ secrets.XUI_PASSWORD }}"
+
+      # Step 5: Start the X-UI service
+      - name: Start X-UI Service
+        run: |
+          echo "Starting X-UI service..."
+          sudo systemctl start x-ui
+          sudo systemctl enable x-ui
+
+      # Step 6: Output Panel Access Information
+      - name: Output Panel URL
+        run: |
+          echo "X-UI Panel is successfully installed and running."
+          echo "Visit the panel at: http://<runner-public-IP>:54321"
