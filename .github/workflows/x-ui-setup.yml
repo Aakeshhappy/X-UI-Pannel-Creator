@@ -1,4 +1,4 @@
-name: Setup X-UI Panel
+name: Prepare X-UI Setup
 
 on:
   push:
@@ -18,20 +18,21 @@ jobs:
         sudo apt update
         sudo apt install -y wget curl
 
-    - name: Download and Configure X-UI Panel
+    - name: Download X-UI installation script
       run: |
-        wget https://github.com/NidukaAkalanka/x-ui-english/raw/main/x-ui.sh
+        wget https://raw.githubusercontent.com/NidukaAkalanka/x-ui-english/main/x-ui.sh
         chmod +x x-ui.sh
-        ./x-ui.sh install
 
-    - name: Set up the configuration (without root)
+    - name: Prepare configuration (without root access)
       run: |
-        echo "Setting up X-UI config"
-        CONFIG_FILE=$(sudo find / -name "x-ui.conf" | head -n 1)
+        echo "Preparing X-UI config"
+        CONFIG_FILE=$(find / -name "x-ui.conf" | head -n 1)
         echo "Config file found at: $CONFIG_FILE"
-        sudo sed -i 's/0.0.0.0/$(curl -s ifconfig.me)/' $CONFIG_FILE
-        sudo systemctl restart x-ui
-
-    - name: Output the X-UI URL
+        echo "The X-UI panel should be set up on your server. Please run it with root privileges."
+        
+    - name: Output instructions for server
       run: |
-        echo "The X-UI Panel should now be accessible at http://$(curl -s ifconfig.me):54321"
+        echo "Follow the instructions below to finish installation on your server:"
+        echo "1. Upload x-ui.sh and run it on your server with root access."
+        echo "2. Set the correct public IP in the configuration file."
+        echo "3. Access the panel at http://<your-server-ip>:54321"
