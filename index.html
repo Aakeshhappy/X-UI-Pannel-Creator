@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>X-UI Panel Generator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>X-UI Panel Generator</h1>
+    <p>Create your X-UI Panel with ease using GitHub Actions.</p>
+    <button id="triggerAction">Run Setup</button>
+    <p id="status"></p>
+  </div>
+
+  <script>
+    document.getElementById('triggerAction').addEventListener('click', () => {
+      // Show a status message
+      const status = document.getElementById('status');
+      status.textContent = "Triggering GitHub Actions workflow...";
+      
+      // Add functionality to trigger the GitHub workflow via API
+      fetch('https://api.github.com/repos/YOUR_USERNAME/YOUR_REPOSITORY/actions/workflows/x-ui-setup.yml/dispatches', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer YOUR_GITHUB_PERSONAL_ACCESS_TOKEN`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ref: 'main', // Replace with your branch name
+        }),
+      })
+      .then(response => {
+        if (response.ok) {
+          status.textContent = "Workflow triggered successfully! Check Actions tab.";
+        } else {
+          status.textContent = "Failed to trigger workflow. Check logs.";
+        }
+      })
+      .catch(error => {
+        status.textContent = `Error: ${error.message}`;
+      });
+    });
+  </script>
+</body>
+</html>
