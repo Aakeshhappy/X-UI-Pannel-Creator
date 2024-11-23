@@ -1,41 +1,50 @@
-name: Set up X-UI Panel
+name: Deploy X-UI Panel
 
 on:
   push:
     branches:
-      - main
+      - main  # Trigger deployment on push to the main branch
 
 jobs:
-  setup-xui:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Install wget and curl
-      run: |
-        sudo apt update
-        sudo apt install -y wget curl
+      - name: Set up SSH key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-    - name: Download X-UI Installation Script
-      run: |
-        wget https://raw.githubusercontent.com/NidukaAkalanka/x-ui-english/main/x-ui.sh
-        chmod +x x-ui.sh
+      - name: Install dependencies on the server
+        run: |
+          ssh -i ~/.ssh/id_rsa username@${{ secrets.SERVER_IP }} << 'EOF'
+            sudo apt-get update && sudo apt-get install -y wget curl unzip
+          EOF
 
-    - name: Generate Public IP and Panel URL
-      run: |
-        # This will simulate fetching the public IP for the real server setup
-        PUBLIC_IP=$(curl -s ifconfig.me)  # Will work on a real server, simulate here
-        echo "Public IP of the server: $PUBLIC_IP"
-        
-        # Generate the X-UI panel URL
-        URL="http://$PUBLIC_IP:54321"
-        echo "X-UI panel URL: $URL"
+      - name: Download and Install X-UI
+        run: |
+          ssh -i ~/.ssh/id_rsa username@${{ secrets.SERVER_IP }} << 'EOF'
+            wget https://github.com/NidukaAkalanka/x-ui-english/raw/main/x-ui.sh -O /tmp/x-ui.sh
+            bash /tmp/x-ui.sh
+          EOF
 
-    - name: Display Instructions
-      run: |
-        echo "Follow these instructions to complete your X-UI setup:"
-        echo "1. Upload x-ui.sh to your server and execute it with root privileges."
-        echo "2. Once the server is up, use the URL below to access the X-UI panel:"
-        echo "   $URL"
+      - name: Configure X-UI Panel
+        run: |
+          ssh -i ~/.ssh/id_rsa username@${{ secrets.SERVER_IP }} << 'EOF'
+            CONFIG_FILE=$(sudo find / -name "x-ui.conf" | head -n 1)
+            sed -i "s/127.0.0.1/0.0.0.0/" $CONFIG_FILE  # Bind X-UI to public IP
+            sudo systemctl restart x-ui
+          EOF
+
+      - name: Get Public IP of the server
+        id: get_ip
+        run: |
+          echo "::set-output name=public_ip::$(curl -s http://ifconfig.me)"
+
+      - name: Display X-UI Panel URL
+        run: |
+          echo "X-UI Panel is accessible at: http://${{ steps.get_ip.outputs.public_ip }}:54321"
