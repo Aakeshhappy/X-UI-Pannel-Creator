@@ -16,9 +16,9 @@ jobs:
 
       - name: Install X-UI Panel
         run: |
-          echo "Running X-UI installation script..."
-          bash <(curl -Ls https://raw.githubusercontent.com/NidukaAkalanka/x-ui-english/master/install.sh)
-        
+          echo "Running X-UI installation script as root..."
+          sudo bash <(curl -Ls https://raw.githubusercontent.com/NidukaAkalanka/x-ui-english/master/install.sh)
+
       - name: Wait for X-UI installation to complete
         run: sleep 30 # Adjust as necessary for installation to complete
 
