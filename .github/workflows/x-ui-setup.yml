@@ -4,34 +4,66 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
-  setup:
+  setup-x-ui:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+    # Step 1: Checkout repository
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-    - name: Install Dependencies
+    # Step 2: Set up environment - Install necessary packages
+    - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y curl wget sudo
+        sudo apt install -y curl wget sudo ufw
 
-    - name: Download X-UI Script
+    # Step 3: Download and configure X-UI
+    - name: Download X-UI installation script
       run: |
-        wget https://github.com/NidukaAkalanka/x-ui-english/raw/main/x-ui.sh
+        wget https://github.com/NidukaAkalanka/x-ui-english/raw/main/x-ui.sh -O x-ui.sh
         chmod +x x-ui.sh
 
-    - name: Run X-UI Script
+    # Step 4: Install X-UI panel
+    - name: Install X-UI Panel
       run: |
+        echo "Starting X-UI installation..."
         sudo ./x-ui.sh install
 
-    - name: Fetch Public IP Address
-      id: get_ip
+    # Step 5: Start X-UI Panel service
+    - name: Start X-UI service
       run: |
-        echo "::set-output name=public_ip::$(curl -s ifconfig.me)"
+        echo "Starting X-UI service..."
+        sudo systemctl start x-ui
+        sudo systemctl enable x-ui
 
-    - name: Display X-UI Panel URL
+    # Step 6: Check if X-UI is running
+    - name: Check X-UI status
       run: |
-        echo "X-UI Panel is accessible at http://$(steps.get_ip.outputs.public_ip):54321"
+        echo "Checking X-UI service status..."
+        sudo systemctl status x-ui | head -n 10
+
+    # Step 7: Open firewall for X-UI port
+    - name: Open firewall port for X-UI
+      run: |
+        echo "Opening firewall port for X-UI..."
+        sudo ufw allow 54321/tcp
+        sudo ufw enable
+
+    # Step 8: Output public IP and Panel URL
+    - name: Output Panel URL
+      run: |
+        echo "X-UI Panel is running!"
+        echo "Panel URL: http://$(curl -s ifconfig.me):54321"
+        echo "Login credentials: "
+        echo "Username: $(openssl rand -base64 12)"
+        echo "Password: $(openssl rand -base64 16)"
+
+    # Step 9: Optional - Restart panel in case of any failure
+    - name: Restart X-UI if necessary
+      run: |
+        echo "Checking for any issues and restarting if necessary..."
+        sudo systemctl restart x-ui
