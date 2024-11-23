@@ -14,10 +14,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Install X-UI Panel
+      - name: Download X-UI installation script
+        run: |
+          echo "Downloading X-UI installation script..."
+          curl -Ls https://raw.githubusercontent.com/NidukaAkalanka/x-ui-english/master/install.sh -o install.sh
+
+      - name: Make the script executable
+        run: chmod +x install.sh
+
+      - name: Run X-UI installation script
         run: |
           echo "Running X-UI installation script as root..."
-          sudo bash <(curl -Ls https://raw.githubusercontent.com/NidukaAkalanka/x-ui-english/master/install.sh)
+          sudo ./install.sh
 
       - name: Wait for X-UI installation to complete
         run: sleep 30 # Adjust as necessary for installation to complete
