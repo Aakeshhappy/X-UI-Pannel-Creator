@@ -20,7 +20,7 @@ jobs:
           sudo apt-get install -y curl wget
           
           echo "Installing X-UI..."
-          sudo bash <(curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh)
+          curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh | sudo bash
           
           echo "X-UI installation complete."
 
