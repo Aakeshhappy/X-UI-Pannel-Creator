@@ -1,4 +1,4 @@
-name: Setup X-UI Panel
+name: Setup X-UI Panel Automatically
 
 on:
   workflow_dispatch: # Allow manual triggering
@@ -12,33 +12,49 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Install X-UI
-      - name: Install X-UI Panel
+      # Step 2: Get Public IP Address
+      - name: Get Public IP Address
+        id: ip
         run: |
-          echo "Updating and installing dependencies..."
+          echo "Getting runner's public IP address..."
+          RUNNER_IP=$(curl -s http://checkip.amazonaws.com)
+          echo "Public IP is $RUNNER_IP"
+          echo "PUBLIC_IP=$RUNNER_IP" >> $GITHUB_ENV
+
+      # Step 3: Install Dependencies (curl and wget)
+      - name: Install Dependencies
+        run: |
           sudo apt-get update
           sudo apt-get install -y curl wget
-          
-          echo "Installing X-UI..."
-          curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh | sudo bash
-          
+
+      # Step 4: Install X-UI Panel
+      - name: Install X-UI Panel
+        run: |
+          echo "Installing X-UI Panel..."
+          curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh | bash
           echo "X-UI installation complete."
 
-      # Step 3: Configure Username and Password
-      - name: Configure Username and Password
+      # Step 5: Configure X-UI Panel (set username and password)
+      - name: Configure X-UI with Username and Password
         run: |
-          echo "Configuring username and password..."
+          echo "Configuring X-UI Panel..."
           sudo x-ui setuser "${{ secrets.XUI_USERNAME }}" "${{ secrets.XUI_PASSWORD }}"
 
-      # Step 4: Start the X-UI service
+      # Step 6: Configure X-UI to Bind to Public IP
+      - name: Update X-UI Configuration
+        run: |
+          echo "Configuring X-UI to bind to public IP..."
+          sudo sed -i "s/127.0.0.1/$PUBLIC_IP/" /etc/x-ui/x-ui.conf
+
+      # Step 7: Start the X-UI Service
       - name: Start X-UI Service
         run: |
           echo "Starting X-UI service..."
           sudo systemctl start x-ui
           sudo systemctl enable x-ui
 
-      # Step 5: Output Panel Access Information
-      - name: Output Panel URL
+      # Step 8: Output X-UI Panel Access URL
+      - name: Output Panel Access Information
         run: |
           echo "X-UI Panel is successfully installed and running."
-          echo "Visit the panel at: http://<runner-public-IP>:54321"
+          echo "You can access the panel at: http://$PUBLIC_IP:54321"
