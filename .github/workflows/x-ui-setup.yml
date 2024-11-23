@@ -1,4 +1,4 @@
-name: Prepare X-UI Setup
+name: Set up X-UI Panel
 
 on:
   push:
@@ -13,26 +13,29 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Install necessary dependencies
+    - name: Install wget and curl
       run: |
         sudo apt update
         sudo apt install -y wget curl
 
-    - name: Download X-UI installation script
+    - name: Download X-UI Installation Script
       run: |
         wget https://raw.githubusercontent.com/NidukaAkalanka/x-ui-english/main/x-ui.sh
         chmod +x x-ui.sh
 
-    - name: Prepare configuration (without root access)
+    - name: Generate Public IP and Panel URL
       run: |
-        echo "Preparing X-UI config"
-        CONFIG_FILE=$(find / -name "x-ui.conf" | head -n 1)
-        echo "Config file found at: $CONFIG_FILE"
-        echo "The X-UI panel should be set up on your server. Please run it with root privileges."
+        # This will simulate fetching the public IP for the real server setup
+        PUBLIC_IP=$(curl -s ifconfig.me)  # Will work on a real server, simulate here
+        echo "Public IP of the server: $PUBLIC_IP"
         
-    - name: Output instructions for server
+        # Generate the X-UI panel URL
+        URL="http://$PUBLIC_IP:54321"
+        echo "X-UI panel URL: $URL"
+
+    - name: Display Instructions
       run: |
-        echo "Follow the instructions below to finish installation on your server:"
-        echo "1. Upload x-ui.sh and run it on your server with root access."
-        echo "2. Set the correct public IP in the configuration file."
-        echo "3. Access the panel at http://<your-server-ip>:54321"
+        echo "Follow these instructions to complete your X-UI setup:"
+        echo "1. Upload x-ui.sh to your server and execute it with root privileges."
+        echo "2. Once the server is up, use the URL below to access the X-UI panel:"
+        echo "   $URL"
