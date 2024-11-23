@@ -20,15 +20,15 @@ jobs:
           sudo apt-get install -y curl wget
           
           echo "Installing X-UI..."
-          bash <(curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh)
+          sudo bash <(curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh)
           
           echo "X-UI installation complete."
 
-      # Step 3: Configure Authentication (username & password)
+      # Step 3: Configure Username and Password
       - name: Configure Username and Password
         run: |
           echo "Configuring username and password..."
-          x-ui setuser "${{ secrets.XUI_USERNAME }}" "${{ secrets.XUI_PASSWORD }}"
+          sudo x-ui setuser "${{ secrets.XUI_USERNAME }}" "${{ secrets.XUI_PASSWORD }}"
 
       # Step 4: Start the X-UI service
       - name: Start X-UI Service
