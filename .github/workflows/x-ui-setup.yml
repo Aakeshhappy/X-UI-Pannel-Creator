@@ -1,4 +1,4 @@
-name: X-UI Panel Setup
+name: X-UI Panel Setup with Auto IP
 
 on:
   push:
@@ -11,41 +11,49 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Step 1: Check out the repository
+    # Step 1: Checkout repository
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    # Step 2: Install dependencies
+    # Step 2: Install required dependencies
     - name: Install required dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y wget curl unzip
 
-    # Step 3: Download and install X-UI (assuming it's Xray or V2Ray based)
+    # Step 3: Get public IP address of the runner
+    - name: Fetch public IP address
+      id: ip_address
+      run: |
+        IP=$(curl -s https://api.ipify.org)
+        echo "Public IP: $IP"
+        echo "PUBLIC_IP=$IP" >> $GITHUB_ENV
+
+    # Step 4: Download and install X-UI (assuming it's now a .zip file)
     - name: Install X-UI Panel
       run: |
-        curl -sSL https://github.com/vaxilu/x-ui/releases/download/v1.0.0/x-ui-linux-amd64.tar.gz -o x-ui.tar.gz
-        tar -xzf x-ui.tar.gz
+        curl -sSL https://github.com/vaxilu/x-ui/releases/download/v1.0.0/x-ui-linux-amd64.zip -o x-ui.zip
+        unzip x-ui.zip
         cd x-ui
         chmod +x x-ui
         sudo mv x-ui /usr/local/bin/
 
-    # Step 4: Setup and configure the X-UI
+    # Step 5: Configure X-UI Panel with the fetched IP address
     - name: Configure X-UI Panel
       run: |
-        # Set up necessary configurations here
-        # Example: Create a new user profile for X-UI
+        # Use the dynamically fetched IP address (stored in the PUBLIC_IP environment variable)
+        echo "Configuring X-UI with IP: $PUBLIC_IP"
         curl -X POST -H "Content-Type: application/json" \
-          -d '{"username": "new_user", "password": "secure_password"}' \
+          -d '{"username": "new_user", "password": "secure_password", "ip": "'$PUBLIC_IP'"}' \
           http://localhost:9999/api/create_user
 
-    # Step 5: Run the X-UI panel (adjust command based on X-UI setup)
+    # Step 6: Run the X-UI panel (adjust command based on X-UI setup)
     - name: Start X-UI Panel
       run: |
         nohup /usr/local/bin/x-ui start &
         sleep 5 # Wait a bit for the server to start
 
-    # Step 6: Check the panel status (optional, just for verification)
+    # Step 7: Check the panel status (optional, just for verification)
     - name: Check X-UI Panel Status
       run: |
         curl http://localhost:9999/status
