@@ -1,45 +1,52 @@
-name: Install X-UI Panel
+name: X-UI Panel Setup
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch: # Allows manual trigger
+  workflow_dispatch:
 
 jobs:
-  install-x-ui:
+  setup-xui:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    # Step 1: Check out the repository
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      - name: Download X-UI installation script
-        run: |
-          echo "Downloading X-UI installation script..."
-          curl -Ls https://raw.githubusercontent.com/NidukaAkalanka/x-ui-english/master/install.sh -o install.sh
+    # Step 2: Install dependencies
+    - name: Install required dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget curl unzip
 
-      - name: Make the script executable
-        run: chmod +x install.sh
+    # Step 3: Download and install X-UI (assuming it's Xray or V2Ray based)
+    - name: Install X-UI Panel
+      run: |
+        curl -sSL https://github.com/vaxilu/x-ui/releases/download/v1.0.0/x-ui-linux-amd64.tar.gz -o x-ui.tar.gz
+        tar -xzf x-ui.tar.gz
+        cd x-ui
+        chmod +x x-ui
+        sudo mv x-ui /usr/local/bin/
 
-      - name: Run X-UI installation script
-        run: |
-          echo "Running X-UI installation script as root..."
-          sudo ./install.sh
+    # Step 4: Setup and configure the X-UI
+    - name: Configure X-UI Panel
+      run: |
+        # Set up necessary configurations here
+        # Example: Create a new user profile for X-UI
+        curl -X POST -H "Content-Type: application/json" \
+          -d '{"username": "new_user", "password": "secure_password"}' \
+          http://localhost:9999/api/create_user
 
-      - name: Wait for X-UI installation to complete
-        run: sleep 30 # Adjust as necessary for installation to complete
+    # Step 5: Run the X-UI panel (adjust command based on X-UI setup)
+    - name: Start X-UI Panel
+      run: |
+        nohup /usr/local/bin/x-ui start &
+        sleep 5 # Wait a bit for the server to start
 
-      - name: Check X-UI Service Status
-        run: |
-          echo "Checking the status of X-UI..."
-          sudo systemctl status x-ui.service
-          
-      - name: Display Access Information
-        run: |
-          # Show the public IP and other X-UI access details
-          echo "Fetching X-UI access details..."
-          PUBLIC_IP=$(curl -s http://checkip.amazonaws.com)
-          echo "X-UI Panel can be accessed at: http://$PUBLIC_IP:54321"
-          echo "Username: your_username"  # Replace with the actual username
-          echo "Password: your_password"  # Replace with the actual password
+    # Step 6: Check the panel status (optional, just for verification)
+    - name: Check X-UI Panel Status
+      run: |
+        curl http://localhost:9999/status
+        # or use any other command to verify if X-UI is running
